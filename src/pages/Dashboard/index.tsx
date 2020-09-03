@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import moment from 'moment';
 
 import income from '../../assets/income.svg';
 import outcome from '../../assets/outcome.svg';
@@ -43,6 +44,16 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     async function loadTransactions(): Promise<void> {
       const { data }: Response = await api.get('/transactions');
+      data.transactions.map(transaction => {
+        const formattedTransaction = transaction;
+        formattedTransaction.formattedDate = moment(
+          transaction.created_at,
+        ).format('DD/MM/YYYY');
+        formattedTransaction.formattedValue =
+          transaction.type === 'outcome' ? '- ' : '';
+        formattedTransaction.formattedValue += formatValue(transaction.value);
+        return transaction;
+      });
       setTransactions(data.transactions);
       setBalance(data.balance);
     }
@@ -101,11 +112,10 @@ const Dashboard: React.FC = () => {
                   <tr key={transaction.id}>
                     <td className="title">{transaction.title}</td>
                     <td className={transaction.type}>
-                      {transaction.type === 'outcome' ? '- ' : ''}
-                      {formatValue(transaction.value)}
+                      {transaction.formattedValue}
                     </td>
                     <td>{transaction.category.title}</td>
-                    <td>20/04/2020</td>
+                    <td>{transaction.formattedDate}</td>
                   </tr>
                 ))}
               </tbody>
